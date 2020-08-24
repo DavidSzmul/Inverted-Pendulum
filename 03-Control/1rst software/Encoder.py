@@ -1,10 +1,8 @@
 import math
-# import GPIO
+import RPi.GPIO as GPIO
 
-A = 0
-B = 0
 def read(pin):
-    return 0
+    return GPIO.input(pin)
 
 class Encoder:
 
@@ -13,14 +11,20 @@ class Encoder:
     angle = 0
     resolution = []
 
-    def __init__(self, resolution=2048):
+    def __init__(self, channnel_A, channel_B, resolution=2048):
         self.resolution = resolution
+        self.A = channnel_A
+        self.B = channel_B
+
+        ### Init Mode GPIO
+        GPIO.setup(self.A, GPIO.IN)
+        GPIO.setup(self.B, GPIO.IN)
 
     def update(self):
-        pinA = read(A)
+        pinA = read(self.A)
 
         if pinA != self.pinA_last:
-            if read(B) != self.pinA_last:
+            if read(self.B) != self.pinA_last:
                 self.counter += 1
 
             else:
@@ -28,8 +32,7 @@ class Encoder:
         else:
             self.pinA_last = pinA
 
-        # self.angle = 2*math.pi * self.counter / self.resolution
-        self.angle+=1
+        self.angle = 2*math.pi * self.counter / self.resolution
         return self.angle
 
     def get_angle(self):
