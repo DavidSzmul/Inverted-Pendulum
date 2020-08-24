@@ -2,23 +2,18 @@
 
 ## Table of contents
 * [General info](#general-info)
-* [Technologies](#technologies)
-* [Setup](#setup)
+* [Steps](#steps)
 
 ## General info
-This project is simple Lorem ipsum dolor generator.
+This is a personnal project in progress in order to build from scratch an entire embedded system.
+The final goal is to build a small segway controlled with a Raspberry-pi (Choice in Python for the moment) that can send information with user via a websocket Server (for IHM)
+The purpose is to use no pre-built system in order to be the most educational and instructive
 	
-## Technologies
-Project is created with:
-* Lorem version: 12.3
-* Ipsum version: 2.33
-* Ament library version: 999
-	
-## Setup
-To run this project, install it locally using npm:
+## Steps
+The steps necessary to make the system reality are:
 
-```
-$ cd ../lorem
-$ npm install
-$ npm start
-```
+* Choice of Actuators/Sensors/Mechanical Pieces
+* CAD : Conception of 3D-printed pieces
+* Caracterisation of Actuators/Sensors
+* Control Loop of system (1rst example with a PID. Can be improved with a LQR for improvement)
+* Websocket Server in order to have an IHM for the user from any device
