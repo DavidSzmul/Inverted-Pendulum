@@ -24,18 +24,17 @@ class loop_Control(FPS_loop):
         FPS_loop.start_loop(self)
 
     def inner_loop(self):
-        self.command = self.controller.update()
-        print(self.command)
+        self.controller.update()
         self.counter += 1
 
-        ### Condition to stop loop
-        if self.counter >= 200:
-            self.loop_running = False
-            self.loop_encoder.stop_loop()
+        # ### Condition to stop loop
+        # if self.counter >= 200:
+        #     self.loop_running = False
+        #     self.loop_encoder.stop_loop()
 
 
 # main for function call.
 if __name__ == "__main__":
-    loop_controller = loop_Control(fps=20, display_rt=1)
+    loop_controller = loop_Control(fps=100, display_rt=1)
     loop_controller.start_loop()
     print("End of script")
