@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+        <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Work+Sans:300,500'>
+        <style type="text/css">
+
+            html {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Work Sans', sans-serif;
+  text-align: center;
+}
+html h1, html h2, html h3, html h4, html h5, html h6 {
+  margin: 0;
+}
+html h1 {
+  color: #333;
+  font-weight: 500;
+}
+html h3 {
+  color: #aaa;
+  font-weight: 500;
+}
+html h4 {
+  color: #999;
+  font-weight: 500;
+}
+html h4:after {
+  content: "%";
+  padding-left: 1px;
+}
+html input[type="range"] {
+  outline: 0;
+  border: 0;
+  border-radius: 500px;
+  width: 400px;
+  max-width: 100%;
+  margin: 24px 0;
+  transition: box-shadow 0.2s ease-in-out;
+}
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  html input[type="range"] {
+    overflow: hidden;
+    height: 40px;
+    -webkit-appearance: none;
+    background-color: #ddd;
+  }
+  html input[type="range"]::-webkit-slider-runnable-track {
+    height: 40px;
+    -webkit-appearance: none;
+    color: #444;
+    margin-top: -1px;
+    transition: box-shadow 0.2s ease-in-out;
+  }
+  html input[type="range"]::-webkit-slider-thumb {
+    width: 40px;
+    -webkit-appearance: none;
+    height: 40px;
+    cursor: ew-resize;
+    background: #fff;
+    box-shadow: -340px 0 0 320px #1597ff, inset 0 0 0 40px #1597ff;
+    border-radius: 50%;
+    transition: box-shadow 0.2s ease-in-out;
+    position: relative;
+  }
+  html input[type="range"]:active::-webkit-slider-thumb {
+    background: #fff;
+    box-shadow: -340px 0 0 320px #1597ff, inset 0 0 0 3px #1597ff;
+  }
+}
+html input[type="range"]::-moz-range-progress {
+  background-color: #43e5f7;
+}
+html input[type="range"]::-moz-range-track {
+  background-color: #9a905d;
+}
+html input[type="range"]::-ms-fill-lower {
+  background-color: #43e5f7;
+}
+html input[type="range"]::-ms-fill-upper {
+  background-color: #9a905d;
+}
+
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+            .frame {
+                font-size: 3em;
+                display: flex;
+                justify-content: center;
+            }
+            .frame, .button_WS, #value  {
+                line-height: 1;
+                padding: 0.5em;
+                margin: 1rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 2em;
+            }
+            .frame, .button_WS {
+                cursor: pointer;
+                user-select: none;
+                min-width: 1.5em;
+            }
+            #minus {
+                color: red;
+            }
+            #plus {
+                color: green;
+            }
+            #value {
+                min-width: 2em;
+            }
+            #state {
+                font-size: 2em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="frame">
+            <div class="button_WS" id="minus">-</div>
+            <div class="value" id="value">?</div>
+            <div class="button_WS" id="plus">+</div>
+        </div>
+        <div class="state" id="state">
+            <span id="users">?</span> online
+        </div>
+
+        <br><br>
+
+        <h3>Range Slider</h3>
+        <input type="range" id="slider" value="10" min="10" max="400">
+        <h4 class="slider_value">10</h4>
+        <p></p>
+        <br><br>
+
+
+
+		<div class="container">
+			<form action="" class="form-inline" id="connectForm">
+				<div class="input-append">
+					<input type="text" class="input-large" value="ws://192.168.1.12:80" id="wsServer">
+					<button class="btn" type="submit" id="connect">Connect</button>
+					<button class="btn" disabled="disabled" id="disconnect">Disconnect</button>
+				</div>
+			</form>
+			<hr>
+			<ul class="unstyled" id="log"></ul>
+		</div>
+
+
+    </body>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script>
+    var minus = document.querySelector('#minus'),
+    plus = document.querySelector('#plus'),
+    value = document.querySelector('#value'),
+    users = document.querySelector('#users'),
+    connect = document.querySelector('#connect'),
+    disconnect = document.querySelector('#disconnect'),
+    ws_Server = document.querySelector('#wsServer'),
+    log = document.querySelector('#log').innerHTML,
+    rangePercent = $('#slider').val(),
+    websocket;
+
+var update_color_fcn = function(){
+    rangePercent = $('[type="range"]').val();
+    $('[class="slider_value"]').text(rangePercent);
+    $('#slider').css('filter', 'hue-rotate(-' + rangePercent + 'deg)');
+}
+
+$('#slider').on('change input', function() {
+    update_color_fcn()
+    if (websocket!=null){
+        websocket.send(JSON.stringify({slider: rangePercent}));
+    }
+});
+
+connect.onclick = function() {
+        websocket = new WebSocket(ws_Server.value);
+
+        websocket.onopen = function() {
+            log = ''
+            log = ('<li><span class="badge badge-success">websocket opened</span></li>');
+            ws_Server.disabled = true;
+            connect.disabled = true;
+            disconnect.disabled = false;
+        };
+
+        websocket.onerror = function() {
+            log =''
+            log =('<li><span class="badge badge-important">websocket error</span></li>');
+        };
+
+        websocket.onmessage = function (event) {
+            data = JSON.parse(event.data);
+            switch (data.type) {
+                case 'state':
+                    value.textContent = data.counter;
+                    $('#slider').val(data.slider)
+                    update_color_fcn()
+                    break;
+
+                case 'users':
+                    users.textContent = (
+                        data.count.toString() + " user" +
+                        (data.count == 1 ? "" : "s"));
+                    break;
+                default:
+                    console.error(
+                        "unsupported event", data);
+            }
+            log =''
+            log =('<li>Received new '+data.type+' event</li>');
+        };
+
+        //websocket = new WebSocket("ws://192.168.1.12:80/")
+        minus.onclick = function (event) {
+            if (websocket!=null){
+              websocket.send(JSON.stringify({action: 'minus'}));
+            }
+        }
+
+        plus.onclick = function (event) {
+            if (websocket!=null){
+                websocket.send(JSON.stringify({action: 'plus'}));
+            }
+        }
+
+        websocket.onclose = function() {
+            log =''
+            log =('<li><span class="badge badge-important">websocket closed</span></li>');
+            ws_Server.disabled = false;
+            connect.disabled = false;
+            disconnect.disabled = true;
+
+            users.textContent = ("? user");
+            value.textContent = ("?")
+        };
+    return false;
+};
+
+disconnect.onclick = function() {
+    websocket.close();
+    websocket = null
+    return false;
+};
+
+
+    </script>
+</html>
